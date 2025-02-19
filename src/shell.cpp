@@ -59,11 +59,13 @@ static void command_ls(const string &base, const string &currentRelative) {
     }
 
     for (const auto &name : entries) {
-        if (name == "." || name == "..")
-            cout << "d -> " << name << endl;
+
         string fullPath = dirPath + "/" + name;
         struct stat st;
-        if (stat(fullPath.c_str(), &st) == 0) {
+        
+        if (name == "." || name == "..")
+            cout << "d -> " << name << endl;
+        else if (stat(fullPath.c_str(), &st) == 0) {
             if (S_ISDIR(st.st_mode))
                 cout << "d -> " << name << endl;
             else
