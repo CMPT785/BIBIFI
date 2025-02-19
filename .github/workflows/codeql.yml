@@ -33,4 +33,4 @@ jobs:
         g++ -std=c++17 -O2 -I include -o bin/fileserver src/main.cpp src/shell.cpp src/fs_utils.cpp
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v1
+      uses: github/codeql-action/analyze@v3
