@@ -57,3 +57,12 @@ FAQs
 We have attached an FAQ below with questions and answers from previous semesters for further clarification.
 
 CMPT 785 BIBIFI FAQ.pdfDownload
+
+
+TO DO:
+
+- restrict admin account from modifying files (high priority)
+
+- add OpenSSL (encryption) to all file/directory creations (low priority)
+
+- full functionality testing required

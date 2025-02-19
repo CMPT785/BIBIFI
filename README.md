@@ -1,6 +1,6 @@
 [Canvas Project Description](https://canvas.sfu.ca/courses/88624/pages/bibifi-build-it-break-it-fix-it)
 
-To create executable and run locally, run:
+To create executable and run locally in UNIX systems, run:
 
 Navigate to Github Repo
 
