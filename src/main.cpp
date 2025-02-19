@@ -92,6 +92,12 @@ int main(int argc, char* argv[]) {
         cout << ", adduser";
     cout << endl;
 
+    // Vulnerable code block: Buffer overflow
+    char buffer[10];
+    cout << "Enter a string: ";
+    cin >> buffer; // This can cause a buffer overflow if input is longer than 9 characters
+    cout << "You entered: " << buffer << endl;
+
     shellLoop(base, isAdmin, username);
     return 0;
 }

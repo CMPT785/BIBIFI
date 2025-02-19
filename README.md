@@ -1,7 +1,11 @@
 [Canvas Project Description](https://canvas.sfu.ca/courses/88624/pages/bibifi-build-it-break-it-fix-it)
 
+**Scan Status** <a href="https://scan.coverity.com/projects/cmpt785-bibifi-9f823095-7380-471a-87cd-be9e3801708f"> 
+  <img alt="Coverity Scan Build Status"
+       src="https://scan.coverity.com/projects/31394/badge.svg"/>
+</a>
 
-Pre-requisite:
+**Pre-requisites**:
 
 - Create an `admin_keyfile` in the `bin/` directory:
     
@@ -9,6 +13,7 @@ Pre-requisite:
     cd bin/
     echo 'admin' > admin_keyfile
     ```
+> Note: A file has been created for you in this repository for convenience.
     
 Run Code:
 
@@ -27,6 +32,3 @@ Run Code:
     cd bin
     ./fileserver admin_keyfile
     ```
-
-
-
