@@ -16,8 +16,8 @@ Run Code:
 
     ```bash
     docker build -t fileserver-image .
-    docker run -d fileserver-image
     docker run -it --rm fileserver-image
+    ./fileserver admin_keyfile
     ```
 
 - To run as a standalone application:
