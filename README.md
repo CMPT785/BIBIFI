@@ -23,7 +23,6 @@ Run Code:
 - To run as a standalone application:
 
     ```bash
-    echo 'admin' > bin/admin_keyfile
     g++ -std=c++17 -O2 -I include -o bin/fileserver src/main.cpp src/shell.cpp src/fs_utils.cpp
     cd bin
     ./fileserver admin_keyfile
