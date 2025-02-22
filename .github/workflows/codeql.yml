@@ -44,28 +44,5 @@ jobs:
         name: fileserver
         path: bin/fileserver
 
-    # - name: Create Release
-    #   id: create_release
-    #   if: github.event_name == 'push'
-    #   uses: actions/create-release@v1
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.BIBIFI_GH_TOKEN }}
-    #   with:
-    #     tag_name: v${{ github.run_number }}
-    #     release_name: Release ${{ github.run_number }}
-    #     draft: false
-    #     prerelease: false
-
-    # - name: Upload Release Asset
-    #   if: github.event_name == 'push'
-    #   uses: actions/upload-release-asset@v1
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.BIBIFI_GH_TOKEN }}
-    #   with:
-    #     upload_url: ${{ steps.create_release.outputs.upload_url }}
-    #     asset_path: bin/fileserver
-    #     asset_name: fileserver
-    #     asset_content_type: application/octet-stream
-
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
