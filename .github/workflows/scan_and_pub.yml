@@ -2,7 +2,7 @@ name: Scan and publish
 
 on:
   push:
-    branches: [ main, test-patch-1 ]
+    branches: [ '**' ]
   pull_request:
     branches: [ main ]
   schedule:
