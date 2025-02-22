@@ -129,7 +129,9 @@ string normalizePath(const string &base, const string &currentRelative, const st
         if (token == "..") {
             if (!result.empty())
                 result.pop_back();
-            // If result is empty, remain empty (can't go above virtual root)
+            // If result is empty, Forbid it (can't go above virtual root)
+            else
+                return "XXXFORBIDDENXXX";
         } else {
             result.push_back(token);
         }

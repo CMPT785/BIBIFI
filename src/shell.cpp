@@ -18,9 +18,21 @@ static string trim(const string &s) {
 
 // Check if the current relative directory is forbidden for creation commands.
 // For non-admin users, creation in the virtual root ("" representing "/") or in "shared" is forbidden.
-static bool isForbiddenCreationDir(const string &currentRelative) {
-    if (currentRelative.empty()) return true; // Virtual root
-    if (currentRelative == "shared") return true;
+static bool isForbiddenCreationDir(const string &normPath, const bool &isAdmin) {
+    if (normPath.empty()) return true; // Virtual root
+    if (normPath == "shared") return true;
+    // admin's allowed modification area is "admin/personal" if base == "filesystem"
+    if (isAdmin) {
+        // if passed path does not start with "admin/personal"
+        if (normPath.find("admin/personal") != 0) {
+            return true;
+        }
+    } else {
+        // if passed path does not start with "personal"
+        if (normPath.find("personal") != 0) {
+            return true;
+        }
+    }
     return false;
 }
 
@@ -35,12 +47,16 @@ static string computeActualPath(const string &base, const string &currentRelativ
 // Command implementations
 static void command_cd(const string &base, string &currentRelative, const string &dirArg) {
     string newRel = normalizePath(base, currentRelative, dirArg);
-    // Compute actual path on disk.
+    if (newRel == "XXXFORBIDDENXXX") {
+        cout << "Forbidden" << endl;
+        return;
+    }
     string actual = computeActualPath(base, newRel);
     if (directoryExists(actual)) {
         currentRelative = newRel;
     }
-    // else, remain in current directory.
+    else
+        cout << "Path does Not exist, or is inaccessible." << endl;
 }
 
 static void command_pwd(const string &base, const string &currentRelative) {
@@ -50,8 +66,13 @@ static void command_pwd(const string &base, const string &currentRelative) {
         cout << "/" << currentRelative << endl;
 }
 
-static void command_ls(const string &base, const string &currentRelative) {
-    string dirPath = computeActualPath(base, currentRelative);
+static void command_ls(const string &base, const string &currentRelative, const string &dirArg) {
+    string normPath = normalizePath(base, currentRelative, dirArg);
+    if (normPath == "XXXFORBIDDENXXX") {
+        cout << "Forbidden" << endl;
+        return;
+    }
+    string dirPath = computeActualPath(base, normPath);
     vector<string> entries;
     if (!listDirectory(dirPath, entries)) {
         cout << "Directory doesn't exist" << endl;
@@ -75,7 +96,12 @@ static void command_ls(const string &base, const string &currentRelative) {
 }
 
 static void command_cat(const string &base, const string &currentRelative, const string &filename) {
-    string filePath = computeActualPath(base, currentRelative) + "/" + filename;
+    string normPath = normalizePath(base, currentRelative, filename);
+    if (normPath == "XXXFORBIDDENXXX") {
+        cout << filename << "Forbidden" << endl;
+        return;
+    }
+    string filePath = computeActualPath(base, normPath);
     string contents;
     if (readFile(filePath, contents))
         cout << contents << endl;
@@ -83,23 +109,39 @@ static void command_cat(const string &base, const string &currentRelative, const
         cout << filename << " doesn't exist" << endl;
 }
 
-static void command_mkfile(const string &base, const string &currentRelative, const string &filename, const string &contents) {
-    if (isForbiddenCreationDir(currentRelative)) {
+static void command_mkfile(const string &base, const string &currentRelative, const string &filename, const string &contents, const bool &isAdmin) {
+    
+    string normPath = normalizePath(base, currentRelative, filename);
+    if (normPath == "XXXFORBIDDENXXX") {
+        cout << filename << "Forbidden" << endl;
+        return;
+    }
+    
+    if (isForbiddenCreationDir(normPath, isAdmin)) {
         cout << "Forbidden" << endl;
         return;
     }
-    string filePath = computeActualPath(base, currentRelative) + "/" + filename;
+    
+    string filePath = computeActualPath(base, normPath);
     if (!writeFile(filePath, contents)) {
         cout << "Error creating file" << endl;
     }
 }
 
-static void command_mkdir(const string &base, const string &currentRelative, const string &dirname) {
-    if (isForbiddenCreationDir(currentRelative)) {
+static void command_mkdir(const string &base, const string &currentRelative, const string &dirname, const bool &isAdmin) {
+    
+    string normPath = normalizePath(base, currentRelative, dirname);
+    if (normPath == "XXXFORBIDDENXXX") {
         cout << "Forbidden" << endl;
         return;
     }
-    string dirPath = computeActualPath(base, currentRelative) + "/" + dirname;
+
+    if (isForbiddenCreationDir(normPath, isAdmin)) {
+        cout << "Forbidden" << endl;
+        return;
+    }
+    
+    string dirPath = computeActualPath(base, normPath);
     if (directoryExists(dirPath)) {
         cout << "Directory already exists" << endl;
     } else {
@@ -108,9 +150,20 @@ static void command_mkdir(const string &base, const string &currentRelative, con
     }
 }
 
-static void command_share(const string &base, const string &currentRelative, const string &filename, const string &targetUser) {
-    // Source file path.
-    string sourceFile = computeActualPath(base, currentRelative) + "/" + filename;
+static void command_share(const string &base, const string &currentRelative, const string &filename, const string &targetUser, const bool &isAdmin) {
+    
+    string normPath = normalizePath(base, currentRelative, filename);
+    if (normPath == "XXXFORBIDDENXXX") {
+        cout << filename << "Forbidden" << endl;
+        return;
+    }
+    
+    if (isForbiddenCreationDir(normPath, isAdmin)) {
+        cout << "Forbidden" << endl;
+        return;
+    }
+    
+    string sourceFile = computeActualPath(base, normPath);
     if (!fileExists(sourceFile)) {
         cout << "File " << filename << " doesn't exist" << endl;
         return;
@@ -149,9 +202,10 @@ static void command_adduser(const string &username) {
         cout << "Error creating shared directory" << endl;
     }
     // Create the keyfile: <username>_keyfile in the current working directory.
-    string keyfileName = username + "_keyfile";
-    if (!writeFile(keyfileName, username))
-        cout << "Error creating keyfile for " << username << endl;
+    string publicKeyfileName = username + "_keyfile";
+    string privateKeyfilePath = "filesystem/keyfiles/" + username + "_keyfile";
+    if (!writeFile(privateKeyfilePath, username) || !writeFile(publicKeyfileName, username))
+        cout << "Error creating keyfiles for " << username << endl;
 }
 
 void shellLoop(const string &base, bool isAdmin, const string &currentUser) {
@@ -160,7 +214,7 @@ void shellLoop(const string &base, bool isAdmin, const string &currentUser) {
     string currentRelative = "";
     string line;
     while (true) {
-        cout << "> ";
+        cout << currentRelative << "> ";
         if (!getline(cin, line))
             break;
         line = trim(line);
@@ -181,7 +235,11 @@ void shellLoop(const string &base, bool isAdmin, const string &currentUser) {
         } else if (command == "pwd") {
             command_pwd(base, currentRelative);
         } else if (command == "ls") {
-            command_ls(base, currentRelative);
+            string dirArg;
+            if (!(iss >> dirArg)) {
+                command_ls(base, currentRelative, "");
+            } else 
+                command_ls(base, currentRelative, dirArg);
         } else if (command == "cat") {
             string filename;
             if (!(iss >> filename)) {
@@ -198,21 +256,21 @@ void shellLoop(const string &base, bool isAdmin, const string &currentUser) {
             string contents;
             getline(iss, contents);
             contents = trim(contents);
-            command_mkfile(base, currentRelative, filename, contents);
+            command_mkfile(base, currentRelative, filename, contents, isAdmin);
         } else if (command == "mkdir") {
             string dirname;
             if (!(iss >> dirname)) {
                 cout << "Invalid Command" << endl;
                 continue;
             }
-            command_mkdir(base, currentRelative, dirname);
+            command_mkdir(base, currentRelative, dirname, isAdmin);
         } else if (command == "share") {
             string filename, targetUser;
             if (!(iss >> filename >> targetUser)) {
                 cout << "Invalid Command" << endl;
                 continue;
             }
-            command_share(base, currentRelative, filename, targetUser);
+            command_share(base, currentRelative, filename, targetUser, isAdmin);
         } else if (command == "adduser") {
             if (!isAdmin) {
                 cout << "Invalid Command" << endl;
