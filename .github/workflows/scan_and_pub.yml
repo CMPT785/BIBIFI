@@ -2,11 +2,11 @@ name: Scan and publish
 
 on:
   push:
-    branches: [ '**' ]
+    branches-ignore: [ main ]
   pull_request:
     branches: [ main ]
   schedule:
-    - cron: '0 0 * * 6'
+    - cron: '0 0 * * 6' # Saturday at 00:00
 
 permissions:
   actions: read
