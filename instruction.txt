@@ -61,10 +61,8 @@ CMPT 785 BIBIFI FAQ.pdfDownload
 
 TO DO:
 
-- restrict admin account from modifying files (high priority)
-
 - add OpenSSL (encryption) to all file/directory creations (low priority)
 
 - full functionality testing required
 
-- review keyfile system, and save keyfiles to specific directory, not just same dir as exe file
+- review keyfile system with security guys
