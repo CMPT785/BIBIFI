@@ -65,4 +65,6 @@ TO DO:
 
 - full functionality testing required
 
+- check if directories need to be sharable too, or only files
+
 - review keyfile system with security guys
