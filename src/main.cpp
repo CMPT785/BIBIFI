@@ -26,17 +26,10 @@ int main(int argc, char* argv[]) {
         cerr << "Usage: ./fileserver keyfile_name" << endl;
         return 1;
     }
-    string keyfileName = argv[1];
-    ifstream keyfile(keyfileName);
-    if (!keyfile) {
-        cout << "Invalid keyfile" << endl;
-        return 1;
-    }
-    string username;
-    keyfile >> username;
-    username = trim(username);
-    if (username.empty()) {
-        cout << "Invalid keyfile" << endl;
+    string publicKeyFileName = argv[1];
+    ifstream public_keyfile(publicKeyFileName);
+    if (!public_keyfile) {
+        cout << "Invalid keyfile 1" << endl;
         return 1;
     }
 
