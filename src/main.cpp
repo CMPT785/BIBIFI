@@ -41,6 +41,14 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    // Ensure the protected keyfiles folder exists.
+    if (!directoryExists("filesystem/keyfiles")) {
+        if (!createDirectory("filesystem/keyfiles")) {
+            cerr << "Error creating keyfiles directory" << endl;
+            return 1;
+        }
+    }
+
     // Auto-create the admin keyfile if it doesn't exist.
     if (!fileExists("filesystem/admin_keyfile")) {
         // Create the admin keyfile in the filesystem.
