@@ -49,20 +49,18 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // Auto-create the admin keyfile if it doesn't exist.
-    if (!fileExists("filesystem/admin_keyfile")) {
-        // Create the admin keyfile in the filesystem.
-        if (!writeFile("filesystem/admin_keyfile", "admin")) {
-            cerr << "Error creating admin_keyfile" << endl;
+    // Auto-create the admin keyfile and directories if it doesn't exist.
+    if (!fileExists("filesystem/keyfiles/admin_keyfile")) {
+        if (!writeFile("filesystem/keyfiles/admin_keyfile", "admin")) {
+            cerr << "Error creating admin keyfile" << endl;
             return 1;
         }
-        // Optionally, create the admin's user directory as well.
+        // create admin's own directory.
         if (!directoryExists("filesystem/admin")) {
             if (!createDirectory("filesystem/admin")) {
-                cerr << "Error creating admin user directory" << endl;
+                cerr << "Error creating admin directory" << endl;
                 return 1;
             }
-            // You can also initialize admin's subdirectories if needed.
             initializeUserFilesystem("filesystem/admin");
         }
     }
