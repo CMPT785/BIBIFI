@@ -150,7 +150,8 @@ static void command_mkdir(const string &base, const string &currentRelative, con
             cout << "Error creating directory" << endl;
     }
 }
-static void command_share(const string &base, const string &currentRelative, const string &filename, const string &targetUser, const bool &isAdmin) {
+static void command_share(const string &base, const string &currentRelative, const string &filename, const string &targetUser, const bool &isAdmin) 
+{
     
     string normPath = normalizePath(base, currentRelative, filename);
     if (normPath == "XXXFORBIDDENXXX") {
@@ -214,11 +215,15 @@ static void command_share(const string &base, const string &currentRelative, con
                     closedir(dir);
                     return;
                 }
+                else if (directoryExists(sourcePath)) {
+                // If it's a directory, recursively copy it
+                command_share(base, currentRelative, entry->d_name, targetUser, isAdmin);
+                }
             } 
         }
         
-        
-}
+    }   
+}   
 
 static void command_adduser(const string &username) {
     // Check if user already exists by verifying the directory "filesystem/<username>"
