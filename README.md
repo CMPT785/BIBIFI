@@ -22,13 +22,27 @@ Run Code:
     ```bash
     docker build -t fileserver-image .
     docker run -it --rm fileserver-image
-    ./fileserver admin_keyfile
     ```
-
+    
 - To run as a standalone application:
 
     ```bash
     g++ -std=c++17 -O2 -I include -o bin/fileserver src/main.cpp src/shell.cpp src/fs_utils.cpp
     cd bin
-    ./fileserver admin_keyfile
     ```
+
+After these steps, you need to run 
+    ```bash
+     ./fileserver {user}_keyfile
+     ```
+     For example if you want to login as admin, run 
+     ```bash
+      ./fileserver admin_keyfile
+      ```
+
+For Unit test
+
+```bash 
+docker run --rm fileserver-image test
+
+```
