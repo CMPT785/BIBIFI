@@ -39,3 +39,10 @@ After these steps, you need to run
      ```bash
       ./fileserver admin_keyfile
       ```
+
+For Unit test
+
+```bash 
+docker run --rm fileserver-image test
+
+```
