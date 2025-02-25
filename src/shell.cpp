@@ -152,40 +152,39 @@ static void command_mkdir(const string &base, const string &currentRelative, con
 }
 static void command_share(const string &base, const string &currentRelative, const string &filename, const string &targetUser, const bool &isAdmin) 
 {
-    
     string normPath = normalizePath(base, currentRelative, filename);
     if (normPath == "XXXFORBIDDENXXX") {
         cout << filename << " Forbidden" << endl;
         return;
     }
-    
+
     if (isForbiddenCreationDir(normPath, isAdmin)) {
         cout << "Forbidden" << endl;
         return;
     }
-    
+
     string sourceFile = computeActualPath(base, normPath);
     if (!fileExists(sourceFile) && !directoryExists(sourceFile)) {
         cout << "File/Directory " << filename << " doesn't exist" << endl;
         return;
     }
-    
-    // Target user's shared directory: "filesystem/<targetUser>/shared"
+
     string targetSharedDir = "filesystem/" + targetUser + "/shared";
     if (!directoryExists(targetSharedDir)) {
         cout << "User " << targetUser << " doesn't exist" << endl;
         return;
     }
 
-    string targetPath = targetSharedDir + "/" + filename;
-    // If target exists, remove it
+    string relativeTargetPath = normPath.substr(currentRelative.length() + 1); 
+    string targetPath = targetSharedDir + "/" + relativeTargetPath;
+
     if (fileExists(targetPath) || directoryExists(targetPath)) {
         removeFile(targetPath);
     }
 
     if (fileExists(sourceFile)) {
         if (!createHardLink(sourceFile, targetPath)) {
-            cout << "Error sharing file" << endl;
+            cout << "Error sharing file: " << sourceFile << endl;
         }
     } 
     else if (directoryExists(sourceFile)) {
@@ -193,37 +192,37 @@ static void command_share(const string &base, const string &currentRelative, con
             cout << "Failed to create directory: " << targetPath << endl;
             return;
         }
-        
+
         DIR *dir = opendir(sourceFile.c_str());
         if (!dir) {
             cout << "Failed to open source directory: " << sourceFile << endl;
             return;
         }
-        
+
         struct dirent *entry;
         while ((entry = readdir(dir)) != nullptr) {
-            // Skip . and .. entries
             if (string(entry->d_name) == "." || string(entry->d_name) == "..") {
                 continue;
             }
-            string sourcePath = sourceFile + "/" + entry->d_name;
-            string targetPath = targetSharedDir + "/" + entry->d_name;
 
-            if (fileExists(sourcePath)) {
-                if (!createHardLink(sourcePath, targetPath)) {
-                    cout << "Error sharing file: " << sourcePath << endl;
+            string entrySourcePath = sourceFile + "/" + entry->d_name;
+            string entryTargetPath = targetPath + "/" + entry->d_name; 
+
+            if (fileExists(entrySourcePath)) {
+                if (!createHardLink(entrySourcePath, entryTargetPath)) {
+                    cout << "Error sharing file: " << entrySourcePath << endl;
                     closedir(dir);
                     return;
                 }
-                else if (directoryExists(sourcePath)) {
-                // If it's a directory, recursively copy it
-                command_share(base, currentRelative, entry->d_name, targetUser, isAdmin);
-                }
             } 
+            else if (directoryExists(entrySourcePath)) {
+                command_share(base, currentRelative, normPath + "/" + entry->d_name, targetUser, isAdmin);
+            }
         }
-        
-    }   
-}   
+        closedir(dir);
+    }
+}
+ 
 
 static void command_adduser(const string &username) {
     // Check if user already exists by verifying the directory "filesystem/<username>"
