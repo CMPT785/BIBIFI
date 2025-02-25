@@ -164,8 +164,8 @@ static void command_share(const string &base, const string &currentRelative, con
     }
     
     string sourceFile = computeActualPath(base, normPath);
-    if (!fileExists(sourceFile)) {
-        cout << "File " << filename << " doesn't exist" << endl;
+    if (!fileExists(sourceFile) && !directoryExists(sourceFile)) {
+        cout << "File/Directory " << filename << " doesn't exist" << endl;
         return;
     }
     // Target user's shared directory: "filesystem/<targetUser>/shared"
@@ -174,12 +174,13 @@ static void command_share(const string &base, const string &currentRelative, con
         cout << "User " << targetUser << " doesn't exist" << endl;
         return;
     }
-    string targetLink = targetSharedDir + "/" + filename;
+    string targetPath = targetSharedDir + "/" + filename;
     // If target file exists, remove it.
-    if (fileExists(targetLink))
-        removeFile(targetLink);
-    if (!createHardLink(sourceFile, targetLink))
-        cout << "Error sharing file" << endl;
+    if (fileExists(targetPath) || directoryExists(targetSharedDir))
+        removeFile(targetPath);
+    if(fileExists(sourceFile))
+        if (!createHardLink(sourceFile, targetPath))
+            cout << "Error sharing file" << endl;
 }
 
 static void command_adduser(const string &username) {
