@@ -94,8 +94,8 @@ int main(int argc, char* argv[]) {
         // For admin, the base is the entire "filesystem" directory.
         base = "filesystem";
         // Ensure admin_keyfile exists in the filesystem.
-        if (!fileExists(base + "/admin_keyfile")) {
-            writeFile(base + "/admin_keyfile", "admin");
+        if (!fileExists(base + "/keyfiles/admin_keyfile")) {
+            writeFile(base + "/keyfiles/admin_keyfile", "admin");
         }
     } else {
         // For a regular user, the base is "filesystem/<username>"
