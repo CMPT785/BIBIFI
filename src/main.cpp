@@ -65,6 +65,28 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    string keyfileName = string("filesystem/keyfiles/") + argv[1];
+    ifstream keyfile(keyfileName);
+    if (!keyfile) {
+        cout << "Invalid keyfile" << endl;
+        return 1;
+    }
+
+    string username;
+    keyfile >> username;
+    username = trim(username);
+    string passed_username;
+    public_keyfile >> passed_username;
+    passed_username = trim(passed_username);
+    if (username.empty() || passed_username.empty()) {
+        cout << "Invalid keyfile" << endl;
+        return 1;
+    }
+    if (username != passed_username) {
+        cout << "Authentication Error: public and pirivate keys do Not match" << endl;
+        return 1;
+    }
+
     bool isAdmin = (username == "admin");
     string base;
 
