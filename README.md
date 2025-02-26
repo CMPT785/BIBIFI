@@ -31,14 +31,17 @@ Run Code:
     cd bin
     ```
 
-After these steps, you need to run 
+After these steps, you need to run:
+
     ```bash
-     ./fileserver {user}_keyfile
-     ```
-     For example if you want to login as admin, run 
-     ```bash
-      ./fileserver admin_keyfile
-      ```
+    ./fileserver {user}_keyfile
+    ```
+
+For example if you want to login as admin, run:
+
+    ```bash
+    ./fileserver admin_keyfile
+    ```
 
 For Unit test
 

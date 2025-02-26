@@ -8,6 +8,7 @@ RUN echo "Listing files in /app before chmod:" && ls -l /app
 RUN apt-get update && apt-get install -y g++ make
 
 RUN g++ -std=c++17 -O2 -I include -o fileserver src/main.cpp src/shell.cpp src/fs_utils.cpp
+RUN echo "admin" > admin_keyfile
 RUN g++ -std=c++17 -O2 -I include -o test_runner src/tests.cpp src/fs_utils.cpp
 
 # Debug: Check if entrypoint.sh exists in the container
