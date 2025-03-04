@@ -6,7 +6,6 @@
 #include "sharing_key_manager.h"
 #include "shared_metadata.h"
 #include "user_metadata.h"
-#include "password_utils.h"
 
 #include <openssl/evp.h>
 #include <openssl/rand.h>
@@ -19,8 +18,6 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <string>
-#include <termios.h>
-#include <unistd.h>
 
 using namespace std;
 
@@ -282,6 +279,11 @@ static void command_share(const string &base, const string &currentRelative,
                           const string &filename, const string &targetUser, 
                           const bool &isAdmin, const string &currentUser, const string &currentUserPass, 
                           const string &senderDerivedKey, const string &globalSharingKey) {
+
+    if (!directoryExists("filesystem/" + targetUser)) {
+        cout << "User " + targetUser + " does Not exist" << endl;
+        return;
+    }
 
     string normPath = normalizePath(base, currentRelative, filename);
     if (normPath == "XXXFORBIDDENXXX" || isForbiddenShareDir(normPath, isAdmin)) {
@@ -589,13 +591,16 @@ void shellLoop(const string &base, bool isAdmin,
             command_share(base, currentRelative, filename, targetUser, isAdmin, currentUser, userPass, userDerivedKey, globalSharingKey);
         } else if (command == "changepass") {
             cout << "Enter current passphrase: ";
-            string oldPass = getHiddenPassword();
+            string oldPass;
+            getline(cin, oldPass);
             oldPass = trim(oldPass);
             cout << "Enter new passphrase: ";
-            string newPass = getHiddenPassword();
+            string newPass;
+            getline(cin, newPass);
             newPass = trim(newPass);
             cout << "Confirm new passphrase: ";
-            string confirmPass = getHiddenPassword();
+            string confirmPass;
+            getline(cin, confirmPass);
             confirmPass = trim(confirmPass);
             if (newPass != confirmPass || newPass.empty()) {
                 cout << "Passphrases do not match or are empty." << endl;
