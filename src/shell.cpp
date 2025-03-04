@@ -283,14 +283,17 @@ static void command_share(const string &base, const string &currentRelative,
                           const bool &isAdmin, const string &currentUser, const string &currentUserPass, 
                           const string &senderDerivedKey, const string &globalSharingKey) {
     
-    if (!directoryExists("/filesystem/" + targetUser)) {
-        cout << "User: " + targetUser + " does not exist." << endl;
-    }
     string normPath = normalizePath(base, currentRelative, filename);
     if (normPath == "XXXFORBIDDENXXX" || isForbiddenShareDir(normPath, isAdmin)) {
         cout << "Forbidden" << endl;
         return;
     }
+
+    if (!directoryExists("filesystem/" + targetUser)) {
+        cout << "User: " + targetUser + " does not exist." << endl;
+        return;
+    }
+
     string sourceFile = computeActualPath(base, normPath);
     if (!fileExists(sourceFile)) {
         cout << "File " << filename << " doesn't exist" << endl;
