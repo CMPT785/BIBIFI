@@ -25,7 +25,7 @@
 | `ls` | Lists directory contents, distinguishing files `(f ->)` and directories `(d ->)`. | 
 | `cat <filename>` | Displays the decrypted contents of a file. Returns an error if the file does not exist. |
 | `share <filename> <username>` | Shares a file with another user, placing a read-only copy in their `shared/` directory. |
-| `mkdir <directory_name>` | Creates a new directory. Errors if the directory already exists.
+| `mkdir <directory_name>` | Creates a new directory. Errors if the directory already exists. |
 | `mkfile <filename> <contents>` | Creates or updates a file. Updates propagate to shared copies.
 | `exit` | Terminates the session. |
 | `changepass <old_pass> <new_pass>` | To change the temporary password for any user |
