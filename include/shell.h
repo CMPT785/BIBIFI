@@ -5,7 +5,10 @@
 
 using namespace std;
 
-// Interactive shell main loop
-void shellLoop(const string &base, bool isAdmin, const string &currentUser, const string &userPass, const string &globalSharingKey, const string &userDerivedKey);
+// Starts the interactive shell loop.
+//   base: The base directory for file operations (e.g., "filesystem" for admin or "filesystem/<username>" for a regular user).
+//   isAdmin: True if the logged-in user is admin.
+//   currentUser: The username of the logged-in user.
+void shellLoop(const string &base, bool isAdmin, const string &currentUser);
 
 #endif // SHELL_H
