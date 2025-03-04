@@ -10,9 +10,12 @@
 #include <sstream>
 #include <string>
 #include <algorithm>
+<<<<<<< HEAD
 #include <termios.h>
 #include <unistd.h>
 #include "password_utils.h" // Add this line
+=======
+>>>>>>> 426bad107b847560a40306e982b6b3217a7ec32d
 
 using namespace std;
 
@@ -118,7 +121,12 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     cout << "Enter passphrase for " << username << ": ";
+<<<<<<< HEAD
     string userPass = getHiddenPassword();
+=======
+    string userPass;
+    getline(cin, userPass);
+>>>>>>> 426bad107b847560a40306e982b6b3217a7ec32d
     userPass = trim(userPass);
     if (userPass.empty()) {
         cerr << "Passphrase cannot be empty." << endl;
