@@ -6,7 +6,6 @@
 #include "sharing_key_manager.h"
 #include "shared_metadata.h"
 #include "user_metadata.h"
-#include "password_utils.h"
 
 #include <openssl/evp.h>
 #include <openssl/rand.h>
@@ -19,8 +18,6 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <string>
-#include <termios.h>
-#include <unistd.h>
 
 using namespace std;
 
@@ -283,6 +280,11 @@ static void command_share(const string &base, const string &currentRelative,
                           const bool &isAdmin, const string &currentUser, const string &currentUserPass, 
                           const string &senderDerivedKey, const string &globalSharingKey) {
 
+    if (!directoryExists("filesystem/" + targetUser)) {
+        cout << "User " + targetUser + " does Not exist" << endl;
+        return;
+    }
+
     string normPath = normalizePath(base, currentRelative, filename);
     if (normPath == "XXXFORBIDDENXXX" || isForbiddenShareDir(normPath, isAdmin)) {
         cout << "Forbidden" << endl;
@@ -514,7 +516,7 @@ void command_changepass(const string &currentUser, const string &oldPass, const 
         cout << "Failed to update your metadata encryption." << endl;
         return;
     }
-    cout << "Password changed successfully." << endl;
+    cout << "\nPassword changed successfully." << endl;
     cout << "Please Log in Again to re-initialize." << endl;
 }
 
@@ -589,16 +591,19 @@ void shellLoop(const string &base, bool isAdmin,
             command_share(base, currentRelative, filename, targetUser, isAdmin, currentUser, userPass, userDerivedKey, globalSharingKey);
         } else if (command == "changepass") {
             cout << "Enter current passphrase: ";
-            string oldPass = getHiddenPassword();
+            string oldPass;
+            getline(cin, oldPass);
             oldPass = trim(oldPass);
-            cout << "Enter new passphrase: ";
-            string newPass = getHiddenPassword();
+            cout << "\nEnter new passphrase: ";
+            string newPass;
+            getline(cin, newPass);
             newPass = trim(newPass);
-            cout << "Confirm new passphrase: ";
-            string confirmPass = getHiddenPassword();
+            cout << "\nConfirm new passphrase: ";
+            string confirmPass;
+            getline(cin, confirmPass);
             confirmPass = trim(confirmPass);
             if (newPass != confirmPass || newPass.empty()) {
-                cout << "Passphrases do not match or are empty." << endl;
+                cout << "\nPassphrases do not match or are empty." << endl;
                 continue;
             }
             command_changepass(currentUser, oldPass, newPass); 
