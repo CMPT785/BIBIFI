@@ -1,22 +1,30 @@
-FROM debian:latest
+# Use the latest Ubuntu image
+FROM ubuntu:latest
+
+# Install required dependencies
+RUN apt-get update && apt-get install -y \
+    g++ \
+    make \
+    cmake \
+    libssl-dev \ 
+    pkg-config \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set the working directory
 WORKDIR /app
+
+# Copy source files
 COPY . /app
 
-# Debug: List all files in /app before setting permissions
-RUN echo "Listing files in /app before chmod:" && ls -l /app
+# Compile with OpenSSL 1.1.1 and C++17
+RUN g++ -std=c++17 -O2 -Wno-deprecated-declarations \
+    -I include \
+    -o fileserver \
+    src/main.cpp src/shell.cpp src/fs_utils.cpp src/encrypted_fs.cpp src/crypto_utils.cpp \
+    src/user_metadata.cpp src/shared_metadata.cpp src/sharing_key_manager.cpp src/utils.cpp \
+    src/password_utils.cpp \
+    -lssl -lcrypto
 
-RUN apt-get update && apt-get install -y g++ make
-
-RUN g++ -std=c++17 -O2 -I include -o fileserver src/main.cpp src/shell.cpp src/fs_utils.cpp
-RUN g++ -std=c++17 -O2 -I include -o test_runner src/tests.cpp src/fs_utils.cpp
-
-# Debug: Check if entrypoint.sh exists in the container
-RUN echo "Checking if entrypoint.sh exists:" && ls -l /app/entrypoint.sh || echo "entrypoint.sh NOT FOUND!"
-
-# Ensure entrypoint.sh has executable permissions
-RUN chmod +x /app/entrypoint.sh
-
-# Debug: List all files in /app after setting permissions
-RUN echo "Listing files in /app after chmod:" && ls -l /app
-
-ENTRYPOINT ["/app/entrypoint.sh"]
+# Set default command (change as needed)
+CMD ["/bin/bash"]
