@@ -11,8 +11,7 @@
     docker run -it --rm fileserver-image
     ```
     
-- To run as a standalone application (needs latest ubuntu):
-
+- To run as a standalone application (requires the latest Ubuntu):
     ```bash
      ./fileserver {user}_keyfile
     ```
