@@ -14,44 +14,85 @@
 
 using namespace std;
 
-// AES encryption using EVP.
+
 string aes_encrypt(const string &plaintext, const unsigned char *key, const unsigned char *iv) {
+    const string tag_prefix = "GCM";
     EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
     if (!ctx)
         throw runtime_error("Failed to create cipher context");
-    if (EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), nullptr, key, iv) != 1)
+
+    if (EVP_EncryptInit_ex(ctx, EVP_aes_256_gcm(), nullptr, key, iv) != 1)
         throw runtime_error("EVP_EncryptInit_ex failed");
 
-    vector<unsigned char> ciphertext(plaintext.size() + EVP_CIPHER_block_size(EVP_aes_256_cbc()));
-    int len = 0, ciphertext_len = 0;
-    if (EVP_EncryptUpdate(ctx, ciphertext.data(), &len, reinterpret_cast<const unsigned char*>(plaintext.data()), plaintext.size()) != 1)
+    vector<unsigned char> ciphertext(plaintext.size());
+    int len = 0;
+
+    if (EVP_EncryptUpdate(ctx, ciphertext.data(), &len,
+                          reinterpret_cast<const unsigned char*>(plaintext.data()), plaintext.size()) != 1)
         throw runtime_error("EVP_EncryptUpdate failed");
-    ciphertext_len = len;
+
+    int ciphertext_len = len;
+
     if (EVP_EncryptFinal_ex(ctx, ciphertext.data() + len, &len) != 1)
         throw runtime_error("EVP_EncryptFinal_ex failed");
     ciphertext_len += len;
+
+    unsigned char tag[16];
+    if (EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_GET_TAG, 16, tag) != 1)
+        throw runtime_error("EVP_CIPHER_CTX_ctrl (get tag) failed");
+
     EVP_CIPHER_CTX_free(ctx);
-    return string(reinterpret_cast<char*>(ciphertext.data()), ciphertext_len);
+
+    string final_result = tag_prefix;
+    final_result += string(reinterpret_cast<char*>(ciphertext.data()), ciphertext_len);
+    final_result += string(reinterpret_cast<char*>(tag), 16);
+    return final_result;
 }
 
+
+
 string aes_decrypt(const string &ciphertext, const unsigned char *key, const unsigned char *iv) {
+    if (ciphertext.size() < 3)
+        throw runtime_error("Invalid ciphertext length");
+
+    string mode_tag = ciphertext.substr(0, 3);
+    string actual_cipher = ciphertext.substr(3);
+
+    if (actual_cipher.size() < 16)
+        throw runtime_error("Ciphertext too short for GCM");
+
     EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
     if (!ctx)
         throw runtime_error("Failed to create cipher context");
-    if (EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), nullptr, key, iv) != 1)
+
+    if (EVP_DecryptInit_ex(ctx, EVP_aes_256_gcm(), nullptr, key, iv) != 1)
         throw runtime_error("EVP_DecryptInit_ex failed");
 
-    vector<unsigned char> plaintext(ciphertext.size());
-    int len = 0, plaintext_len = 0;
-    if (EVP_DecryptUpdate(ctx, plaintext.data(), &len, reinterpret_cast<const unsigned char*>(ciphertext.data()), ciphertext.size()) != 1)
+    int ciphertext_len = actual_cipher.size() - 16;
+    auto ciphertext_data = reinterpret_cast<const unsigned char*>(actual_cipher.data());
+    auto tag = reinterpret_cast<const unsigned char*>(actual_cipher.data() + ciphertext_len);
+
+    vector<unsigned char> plaintext(ciphertext_len);
+    int len = 0;
+
+    if (EVP_DecryptUpdate(ctx, plaintext.data(), &len, ciphertext_data, ciphertext_len) != 1)
         throw runtime_error("EVP_DecryptUpdate failed");
-    plaintext_len = len;
-    if (EVP_DecryptFinal_ex(ctx, plaintext.data() + len, &len) != 1)
-        throw runtime_error("EVP_DecryptFinal_ex failed");
+    
+    vector<unsigned char> tag_vec(tag, tag + 16);
+    if (EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_TAG, 16, tag_vec.data()) != 1)
+        throw runtime_error("EVP_CIPHER_CTX_ctrl (set tag) failed");
+
+    int plaintext_len = len;
+    if (EVP_DecryptFinal_ex(ctx, plaintext.data() + len, &len) != 1) {
+        EVP_CIPHER_CTX_free(ctx);
+        throw runtime_error("EVP_DecryptFinal_ex failed (authentication failed)");
+    }
     plaintext_len += len;
+
     EVP_CIPHER_CTX_free(ctx);
     return string(reinterpret_cast<char*>(plaintext.data()), plaintext_len);
 }
+
 
 bool generate_aes_key_iv(unsigned char *key, unsigned char *iv) {
     return (RAND_bytes(key, AES_KEYLEN) == 1 && RAND_bytes(iv, AES_IVLEN) == 1);
@@ -143,14 +184,14 @@ bool authenticateUser(const string &username,
                       const string &privateKeyPath,
                       const string &passphrase) {
     const string testStr = "test_challenge";
-    
+
     // Load public key from the given file.
     RSA* rsa_pub = load_public_key(publicKeyPath);
     if (!rsa_pub) {
         cerr << "Failed to load public key from " << publicKeyPath << "\n";
         return false;
     }
-    
+
     string encrypted;
     try {
         encrypted = rsa_encrypt(rsa_pub, testStr);
@@ -160,14 +201,14 @@ bool authenticateUser(const string &username,
         return false;
     }
     RSA_free(rsa_pub);
-    
+
     // Load private key from the protected keyfiles folder.
     RSA* rsa_priv = load_private_key(privateKeyPath, passphrase);
     if (!rsa_priv) {
         cerr << "Failed to load private key from " << privateKeyPath << "\n";
         return false;
     }
-    
+
     string decrypted;
     try {
         decrypted = rsa_decrypt(rsa_priv, encrypted);
@@ -177,7 +218,7 @@ bool authenticateUser(const string &username,
         return false;
     }
     RSA_free(rsa_priv);
-    
+
     return (decrypted == testStr);
 }
 
@@ -206,7 +247,7 @@ bool verifyKeyPair(const string &publicKeyPath,
         return false;
     }
     RSA_free(rsaPub);
-    
+
     RSA* rsaPriv = load_private_key(privateKeyPath, passphrase);
     if (!rsaPriv) {
         cerr << "Failed to load private key from " << privateKeyPath << endl;
@@ -221,6 +262,6 @@ bool verifyKeyPair(const string &publicKeyPath,
         return false;
     }
     RSA_free(rsaPriv);
-    
+
     return (decrypted == testStr);
 }
